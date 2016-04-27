@@ -8,26 +8,26 @@ use utf8;
 our $VERSION = '0.02';
 
 sub new {
-	my ($class, %args) = @_;
+  my ($class, %args) = @_;
 
   unless ($args{'_login'} && $args{'_password'} && $args{'_sender'}) {
-	  die "$class needs hash with _login, _password and _sender.\n"
+    die "$class needs hash with _login, _password and _sender.\n"
   }
 
-	my $self = bless {%args}, $class;
-	$self->{base_url}    = 'https://get.spiricom.spirius.com:55001';
-	$self->{send_url}    = $self->{base_url} . '/cgi-bin/sendsms';
-	$self->{_sender}     = $self->{_sender} // 'SPIRIUS'; # "From" phone number +4612345789 or alphanumeric text.
+  my $self = bless {%args}, $class;
+  $self->{base_url}    = 'https://get.spiricom.spirius.com:55001';
+  $self->{send_url}    = $self->{base_url} . '/cgi-bin/sendsms';
+  $self->{_sender}     = $self->{_sender} // 'SPIRIUS'; # "From" phone number +4612345789 or alphanumeric text.
                                                         # Probably limited to 11 chars when text.
   unless ($self->{_sender} =~ /^\+\d\d[\-\d]+$/) { # We expect either phone number: +46.. or alphanumeric: SPIRI..
     $self->{_sender} .= '&FromType=A';
   }
   $self->{_test} = $self->{_test} || undef;
-	return $self;
+  return $self;
 }
 
 sub send_sms {
-	my ($self, %args) = @_;
+  my ($self, %args) = @_;
   utf8::decode($args{'text'});
   my $query = $self->{send_url}
               . '?User=' . $self->{_login}
@@ -37,14 +37,14 @@ sub send_sms {
               . '&Msg=' . uri_escape($args{'text'});
 
   if (defined($self->{_test})) {
-	  return HTTP::Tiny->new->get("$query");
+    return HTTP::Tiny->new->get("$query");
   }
 
-	my $response = HTTP::Tiny->new->get("$query");
+  my $response = HTTP::Tiny->new->get("$query");
   if ($response->{status} eq "202") {
-		return 1;
-	}
-	return 0;
+    return 1;
+  }
+  return 0;
 }
 
 1;
@@ -61,21 +61,21 @@ SMS::Send::Spirius - SMS::Send driver to send messages via Spirius HTTP Get API
 
   # Create a sender
   my $sender = SMS::Send->new('Spirius',
-		_login    => 'username',
-		_password => 'password',
-		_sender   => 'FROM ME', # Text, max 11 chars or phone number +46123456789
+    _login    => 'username',
+    _password => 'password',
+    _sender   => 'FROM ME', # Text, max 11 chars or phone number +46123456789
   );
 
   # Send a message
   my $sent = $sender->send_sms(
-		text => 'This is a test message',
-		to   => '+4612345678',
+    text => 'This is a test message',
+    to   => '+4612345678',
   );
 
   if ( $sent ) {
-		print "Message sent ok\n";
+    print "Message sent ok\n";
   } else {
-		print "Failed to send message\n";
+    print "Failed to send message\n";
   }
 
 
