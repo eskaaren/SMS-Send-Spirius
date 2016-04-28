@@ -4,8 +4,7 @@ use URI::Escape;
 use base 'SMS::Send::Driver';
 use strict;
 use warnings;
-use utf8;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub new {
   my ($class, %args) = @_;
@@ -20,7 +19,10 @@ sub new {
   $self->{_sender}     = $self->{_sender} // 'SPIRIUS'; # "From" phone number +4612345789 or alphanumeric text.
                                                         # Probably limited to 11 chars when text.
   unless ($self->{_sender} =~ /^\+\d\d[\-\d]+$/) { # We expect either phone number: +46.. or alphanumeric: SPIRI..
-    $self->{_sender} .= '&FromType=A';
+    if (utf8::is_utf8($self->{_sender})) {
+      utf8::encode($self->{_sender});
+    }
+    $self->{_sender} = uri_escape($self->{_sender}) . '&FromType=A';
   }
   $self->{_test} = $self->{_test} || undef;
   return $self;
